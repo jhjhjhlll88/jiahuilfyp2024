@@ -142,7 +142,6 @@ posthog==3.5.0
 propcache==0.2.1
 protobuf==4.25.3
 psutil==6.1.1
-psycopg2==2.9.10
 psycopg2-binary==2.9.10
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
