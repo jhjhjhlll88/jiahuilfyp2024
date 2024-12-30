@@ -1,0 +1,246 @@
+{% extends 'MainApp/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card shadow-lg mb-4" style="border-radius: 20px; padding: 2rem;">
+    <h5 class="card-header bg-primary text-white text-center" style="border-radius: 20px 20px 0 0;">Raise A Ticket</h5>
+    <div class="card-body">
+        <form name="issue_form" id="issue_form" class="needs-validation" onsubmit="return false;" novalidate>
+            <div id="error_msg"></div>
+
+            <!-- Row 1 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label" for="name">Name<i class='text-danger'>*</i></label>
+                    <input type="text" class="form-control form-control-lg shadow-sm" id="name" name="name" 
+                           placeholder="Enter Name" required />
+                    <div class="invalid-feedback">Please enter your name.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="email">Email<i class='text-danger'>*</i></label>
+                    <input type="email" id="email" name="email" class="form-control form-control-lg shadow-sm" 
+                           placeholder="Enter Email" required />
+                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label" for="phone">Phone<i class='text-danger'>*</i></label>
+                    <input type="text" id="phone" name="phone" class="form-control form-control-lg phone-mask shadow-sm" 
+                           placeholder="Enter Phone" pattern="[0-9]{4}[0-9]{3}[0-9]{3}" required />
+                    <div class="invalid-feedback">Please enter a valid phone number.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="address">Address<i class='text-danger'>*</i></label>
+                    <select name="address" id="address" class="form-select form-select-lg shadow-sm" required>
+                        <option selected disabled value="">Select Address</option>
+                        <option value="Mr">Mr</option>
+                        <option value="Miss">Miss</option>
+                        <option value="Mdm">Mdm</option>
+                    </select>
+                    <div class="invalid-feedback">Please select an address.</div>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label" for="user_type">Study Level<i class='text-danger'>*</i></label>
+                    <select name="user_type" id="user_type" class="form-select form-select-lg shadow-sm" required>
+                        <option selected disabled value="">Select User Type</option>
+                        <option value="Postgraduate">Postgraduate</option>
+                        <option value="Undergraduate">Undergraduate</option>
+                    </select>
+                    <div class="invalid-feedback">Please select your study level.</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="priority" class="form-label">Priority<i class='text-danger'>*</i></label>
+                    <select name="priority" id="priority" class="form-select form-select-lg shadow-sm" required>
+                        <option selected disabled value="">Select Priority</option>
+                        <option value="Very Urgent">Very Urgent</option>
+                        <option value="Urgent">Urgent</option>
+                        <option value="Not Urgent">Not Urgent</option>
+                    </select>
+                    <div class="invalid-feedback">Please select priority.</div>
+                </div>
+            </div>
+
+            <!-- Row 4 -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <label class="form-label" for="description">Issue Description<i class='text-danger'>*</i></label>
+                    <textarea class="form-control form-control-lg shadow-sm" id="description" placeholder="Enter Issue Description"
+                              name="description" rows="4" required></textarea>
+                    <div class="invalid-feedback">Please describe the issue in detail.</div>
+                </div>
+            </div>
+
+            <!-- Note -->
+            <div class="card-title d-flex justify-content-between mb-3">
+                <small class='text-danger'>* Mandatory Field</small>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block customjs %}
+<script>
+    const form = document.getElementById('issue_form');
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        form.classList.add('was-validated');
+        validateForm();
+    }, false);
+
+    function createErrorAlert(msg) {
+        var alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show';
+        alert.id = 'alert_error_msg';
+        alert.setAttribute('role', 'alert');
+        alert.innerHTML = msg;
+        var closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn-close';
+        closeButton.setAttribute('data-bs-dismiss', 'alert');
+        closeButton.setAttribute('aria-label', 'close');
+        alert.appendChild(closeButton);
+        document.getElementById('error_msg').appendChild(alert);
+        setTimeout(() => alert.remove(), 2500);
+    }
+
+    function createModal(ticket_number) {
+        const existmodal = document.getElementById('ticket_modal');
+        if (existmodal) {
+            existmodal.remove();
+        }
+        var modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'ticket_modal';
+        modal.setAttribute('data-bs-backdrop', 'static');
+        modal.setAttribute('data-bs-keyboard', 'false');
+
+        var modalDialog = document.createElement('div');
+        modalDialog.className = 'modal-dialog modal-sm modal-dialog-centered';
+        modalDialog.role = "document";
+
+        var modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+
+        var modalHeader = document.createElement('div');
+        modalHeader.className = 'modal-header';
+
+        var modalTitle = document.createElement('h5');
+        modalTitle.className = 'modal-title text-success';
+        modalTitle.innerHTML = 'SUCCESS';
+
+        var modalBody = document.createElement('div');
+        modalBody.className = 'modal-body';
+        modalBody.innerHTML = `<div>
+            <span class="fw-bolder">Your inquiry has been raised successfully.</span><br/>
+            Use the ticket number below to track its status.</div> <div class='text-primary fw-bold text-center'> ${ticket_number}</div><small>You will receive an email with the ticket details.</small>`;
+
+        var modalFooter = document.createElement('div');
+        modalFooter.className = 'modal-footer justify-content-center';
+
+        var closeButton2 = document.createElement('button');
+        closeButton2.type = 'button';
+        closeButton2.className = 'btn btn-secondary btn-sm';
+        closeButton2.setAttribute('data-bs-dismiss', 'modal');
+        closeButton2.innerHTML = 'Close';
+
+        modalHeader.appendChild(modalTitle);
+        modalFooter.appendChild(closeButton2);
+        modalContent.appendChild(modalHeader);
+        modalContent.appendChild(modalBody);
+        modalContent.appendChild(modalFooter);
+
+        modalDialog.appendChild(modalContent);
+        modal.appendChild(modalDialog);
+
+        document.body.appendChild(modal);
+        $('#ticket_modal').modal('show');
+    }
+
+    function validateForm() {
+        const name = document.forms["issue_form"]["name"];
+        const phone = document.forms["issue_form"]["phone"];
+        const email = document.forms["issue_form"]["email"];
+        const address = document.forms["issue_form"]["address"];
+        const user_type = document.forms["issue_form"]["user_type"];
+        const priority = document.forms["issue_form"]["priority"];
+        const description = document.forms["issue_form"]["description"];
+
+        if (name.value == "") {
+            name.focus();
+            return false;
+        }
+        if (phone.value == "") {
+            phone.focus();
+            return false;
+        }
+        if (email.value == "") {
+            email.focus();
+            return false;
+        }
+        if (address.value == "") {
+            address.focus();
+            return false;
+        }
+        if (user_type.value == "") {
+            user_type.focus();
+            return false;
+        }
+        if (priority.value == "") {
+            priority.focus();
+            return false;
+        }
+        if (description.value == "") {
+            description.focus();
+            return false;
+        }
+
+        const form_data = {
+            name: name.value.trim(),
+            email: email.value.trim(),
+            phone: phone.value.trim(),
+            address: address.value.trim(),
+            user_type: user_type.value.trim(),
+            priority: priority.value.trim(),
+            description: description.value.trim()
+        };
+
+        RaisedIssue(form_data).then((resp) => {
+            if (resp.success) {
+                createModal(resp.ticket_number);
+                form.classList.remove('was-validated');
+                form.reset();
+            } else {
+                createErrorAlert(resp.message);
+            }
+            return false;
+        });
+    }
+
+    async function RaisedIssue(data = {}) {
+        const url = "{% url 'raised_issue' %}";
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json(); 
+    }
+</script>
+
+{% endblock customjs %}

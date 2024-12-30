@@ -1,0 +1,214 @@
+{% extends 'AdminApp/base.html' %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold text-primary">Today's Inquiries</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="cursor-pointer" onclick="today_ticket_status_redirect('Unassigned')">Raised <strong>{{today_raised}}</strong></span>
+                    <span class="cursor-pointer text-success" onclick="today_ticket_status_redirect('Completed')">Resolved <strong>{{today_resolved}}</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body cursor-pointer" onclick="ticket_status_redirect('Unassigned')">
+                        <div class="card-title text-center">
+                            <span class="fw-light text-secondary">Unassigned Inquiries</span>
+                        </div>
+                        <h3 class="text-secondary">{{unassigned_issue}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body cursor-pointer" onclick="ticket_status_redirect('Assigned')">
+                        <div class="card-title text-center">
+                            <span class="fw-light text-primary">Assigned Inquiries</span>
+                        </div>
+                        <h3 class="text-primary">{{assigned_issue}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body cursor-pointer" onclick="ticket_status_redirect('Completed')">
+                        <div class="card-title text-center">
+                            <span class="fw-light text-success">Completed Inquiries</span>
+                        </div>
+                        <h3 class="text-success">{{completed_issue}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body cursor-pointer" onclick="ticket_status_redirect('Rejected')">
+                        <div class="card-title text-center">
+                            <span class="fw-light text-danger">Rejected Inquiries</span>
+                        </div>
+                        <h3 class="text-danger">{{rejected_issue}}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-2 mb-4">
+        <div class="card">
+            <div class="card-body cursor-pointer" onclick="ticket_type_redirect('Signature')">
+                <div class="card-title text-center">
+                    <span class="fw-semibold">Signature</span>
+                </div>
+                <h3 class="text-success text-center">{{signature_issue}}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 mb-4">
+        <div class="card">
+            <div class="card-body cursor-pointer" onclick="ticket_type_redirect('Enrollment')">
+                <div class="card-title text-center">
+                    <span class="fw-semibold">Enrollment</span>
+                </div>
+                <h3 class="text-primary text-center">{{enrollment_issue}}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 mb-4">
+        <div class="card">
+            <div class="card-body cursor-pointer" onclick="ticket_type_redirect('Transcript')">
+                <div class="card-title text-center">
+                    <span class="fw-semibold">Transcript</span>
+                </div>
+                <h3 class="text-danger text-center">{{transcript_issue}}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 mb-4">
+        <div class="card">
+            <div class="card-body cursor-pointer" onclick="ticket_type_redirect('Scholarship')">
+                <div class="card-title text-center">
+                    <span class="fw-semibold">Scholarship</span>
+                </div>
+                <h3 class="text-warning text-center">{{scholarship_issue}}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 mb-4">
+        <div class="card">
+            <div class="card-body cursor-pointer" onclick="ticket_type_redirect('Examination')">
+                <div class="card-title text-center">
+                    <span class="fw-semibold">Examination</span>
+                </div>
+                <h3 class="text-info text-center">{{examination_issue}}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 mb-4">
+        <div class="card">
+            <div class="card-body cursor-pointer" onclick="ticket_type_redirect('Other')">
+                <div class="card-title text-center">
+                    <span class="fw-semibold">Other</span>
+                </div>
+                <h3 class="text-secondary text-center">{{other_issue}}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-center align-items-center" id="issue_status_canvas"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block customjs %}
+<script>
+    var manage_url = "{% url 'manage_issues' %}";
+
+    function ticket_status_redirect(status) {
+        return location.href = `${manage_url}?ticket_status=${status}`;
+    }
+
+    function today_ticket_status_redirect(status) {
+        var todayDate = new Date().toLocaleDateString('fr-CA');
+        return location.href = `${manage_url}?ticket_status=${status}&action_date=${todayDate}`;
+    }
+
+    function ticket_type_redirect(type) {
+        return location.href = `${manage_url}?ticket_type=${type}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        chatRenderFun();
+    });
+
+    async function IssueAnalytics(data = {}) {
+        const url = "{% url 'issue_analytics' %}";
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    }
+
+    function chatRenderFun() {
+        const data = { from_date: '', to_date: '' };
+        IssueAnalytics(data).then((resp) => {
+            if (resp.success) {
+                const resp_data = resp.data;
+                const canvas_status = document.getElementById("issue_status_canvas");
+
+                const status_color = ["#673ab7", "#ff9800", "#8bc34a", "#e91e63"];
+                const labels = resp_data.labels;
+                const status_series = resp_data.issues_status_series;
+
+                // Ticket Status Distribution Bar Chart
+                const chart_option_status = {
+                    colors: status_color,
+                    series: status_series,
+                    chart: {
+                        height: 350,
+                        toolbar: { show: false },
+                        type: 'bar',
+                    },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: labels, labels: { style: { fontSize: '14px', colors: '#b0bec5' } } },
+                    yaxis: { labels: { show: false }, tickAmount: 5 },
+                    plotOptions: { bar: { columnWidth: '40%' } },
+                    grid: { borderColor: "#e0e0e0" },
+                    title: { text: 'Inquiries Status Distribution', align: 'center', style: { color: '#607d8b' } }
+                };
+
+                new ApexCharts(canvas_status, chart_option_status).render();
+            }
+        });
+    }
+</script>
+{% endblock %}

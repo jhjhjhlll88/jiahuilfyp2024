@@ -1,0 +1,644 @@
+{% extends 'AdminApp/base.html' %} {% load static %} {% block content %}
+
+<div class="card">
+  <div class='px-3 py-3'>
+      <h5>Manage Inquiries</h5>
+    <form class="d-flex flex-md-row flex-column justify-content-between align-items-center" method="GET" ,
+            action="{{issues_report}}">
+            <select class="form-select form-select-sm me-md-3 mb-md-0 mb-2 {%if ticket_type %}border-primary{%endif%}" name="ticket_type" id="ticket_type">
+                <option {%if ticket_type == "" %}selected{%endif%} value="">Inquiries Type</option>
+                <option {%if ticket_type == "Signature" %}selected{%endif%} value="Signature">Signature</option>
+                <option {%if ticket_type == "Enrollment" %}selected{%endif%} value="Enrollment">Enrollment</option>
+                <option {%if ticket_type == "Transcript" %}selected{%endif%} value="Transcript">Transcript</option>
+                <option {%if ticket_type == "Scholarship" %}selected{%endif%} value="Scholarship">Scholarship</option>
+                <option {%if ticket_type == "Examination" %}selected{%endif%} value="Examination">Examination</option>
+                <option {%if ticket_type == "Other" %}selected{%endif%} value="Other">Other</option>
+            </select>
+
+            <select class="form-select form-select-sm me-md-3 mb-md-0 mb-2 {%if ticket_status %}border-primary{%endif%}" name="ticket_status" id="ticket_status" >
+                <option {%if ticket_status == "" %}selected{%endif%} value="">Inquiries Status</option>
+                <option {%if ticket_status == "Unassigned" %}selected{%endif%} value="Unassigned">Unassigned</option>
+                <option {%if ticket_status == "Assigned" %}selected{%endif%} value="Assigned">Assigned</option>
+                <option {%if ticket_status == "Completed" %}selected{%endif%} value="Completed">Completed</option>
+                <option {%if ticket_status == "Rejected" %}selected{%endif%} value="Rejected">Rejected</option>
+            </select>
+
+            <div class="input-group input-group-merge input-group-sm me-md-3 mb-md-0 mb-2 {%if from_date %}border-primary{%endif%}">
+                <span class="input-group-text">From:</span>
+                <input type="date" name="from_date" class="form-control" value="{{from_date|date:'Y-m-d'}}">
+            </div>
+            <div class="input-group input-group-merge input-group-sm me-md-3 mb-md-0 mb-2 {%if to_date%}border-primary{%endif%}">
+                <span class="input-group-text">To:</span>
+                <input type="date" name="to_date" class="form-control"  value="{{to_date|date:'Y-m-d'}}">
+            </div>
+            <div class='d-flex'>
+            <button type="submit" class="btn btn-outline-primary btn-sm">Submit</button>
+            {% if to_date or from_date or ticket_status or ticket_type %}
+            <a href="{% url 'manage_issues' %}" type="reset" class="btn ms-1 btn-danger btn-sm">Clear</a>
+            {%endif%}
+            </div>
+        </form>
+  </div>
+
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>
+            Inquiries No.
+              {% if order_by == "-ticket_no" %}
+                <i class='bx bx-up-arrow-alt cursor-pointer' onclick="order_by('ticket_no')"></i>
+              {%else%}
+                <i class='bx bx-down-arrow-alt cursor-pointer' onclick="order_by('-ticket_no')"></i>
+              {% endif %}
+          </th>
+          <th>
+              Students/Visitor
+              {% if order_by == "-emp_name" %}
+                <i class='bx bx-up-arrow-alt cursor-pointer' onclick="order_by('emp_name')"></i>
+              {%else%}
+                <i class='bx bx-down-arrow-alt cursor-pointer' onclick="order_by('-emp_name')"></i>
+              {% endif %}
+          </th>
+          <th>
+            Inquiries Type
+              {% if order_by == "-issue_type" %}
+                <i class='bx bx-up-arrow-alt cursor-pointer' onclick="order_by('issue_type')"></i>
+              {%else%}
+                <i class='bx bx-down-arrow-alt cursor-pointer' onclick="order_by('-issue_type')"></i>
+              {% endif %}
+          </th>
+          <th>
+              Issue Date
+              {% if order_by == "-created_at" %}
+                <i class='bx bx-up-arrow-alt cursor-pointer' onclick="order_by('created_at')"></i>
+              {%else%}
+                <i class='bx bx-down-arrow-alt cursor-pointer' onclick="order_by('-created_at')"></i>
+              {% endif %}
+          </th>
+          <th>
+              Admin Staff
+              {% if order_by == "-assign_name" %}
+                <i class='bx bx-up-arrow-alt cursor-pointer' onclick="order_by('assign_name')"></i>
+              {%else%}
+                <i class='bx bx-down-arrow-alt cursor-pointer' onclick="order_by('-assign_name')"></i>
+              {% endif %}
+          </th>
+          <th>
+              Status
+              {% if order_by == "-status" %}
+                <i class='bx bx-up-arrow-alt cursor-pointer' onclick="order_by('status')"></i>
+              {%else%}
+                <i class='bx bx-down-arrow-alt cursor-pointer' onclick="order_by('-status')"></i>
+              {% endif %}
+          </th>
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+      {% if issues %}
+        {% for issue in issues %}
+        <tr>
+          <td>
+            <span
+              class="fw-bolder text-primary cursor-pointer"
+              data-bs-target="#view_issue{{issue.id}}"
+              data-bs-toggle="modal"
+              >{{issue.ticket_no}}</span
+            >
+          </td>
+          <td>
+            <div class="d-flex flex-column">
+              <span>{{issue.emp_name}}</span>
+              <small>{{issue.emp_phone}}</small>
+            </div>
+          </td>
+          <td><span class="fw-normal">{{issue.issue_type}}</span></td>
+          <td>{{issue.issue_date}}</td>
+          <td>
+            {% if issue.assign_name and issue.assign_phone %}
+            <div
+              class="d-flex flex-column cursor-pointer"
+              data-bs-toggle="modal"
+              data-bs-target="#assignEngr{{issue.id}}"
+            >
+              <span>{{issue.assign_name}}</span>
+              <small>{{issue.assign_phone}}</small>
+            </div>
+            {% else %}
+            <button
+              class="btn btn-xs btn-outline-secondary"
+              data-bs-toggle="modal"
+              data-bs-target="#assignEngr{{issue.id}}"
+            >
+              Assign
+            </button>
+            {% endif%}
+          </td>
+          <td>
+            <button
+              data-bs-toggle="modal"
+              data-bs-target="#updateIssueStautus{{issue.id}}"
+              class="btn btn-xs rounded-pill {%if issue.status == 'Unassigned' %}btn-outline-secondary {% elif issue.status == 'Assigned' %}btn-outline-primary{% elif issue.status == 'Completed' %}btn-outline-success {%else%}btn-outline-danger{%endif%}"
+            >
+              {{issue.status}}
+            </button>
+          </td>
+        </tr>
+        <!-- view issue modal  -->
+        <div
+          class="modal fade"
+          id="view_issue{{issue.id}}"
+          tabindex="-1"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel2">
+                  View Inquiries {{issue.ticket_no}}
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+
+              <div class="modal-body" style="white-space: normal;">
+
+                  <ul class="timeline timeline-dashed mt-3">
+                      <li class="timeline-item timeline-item-secondary mb-3">
+                        <span class="timeline-indicator timeline-indicator-secondary">
+                          <i class="bx bx-paint"></i>
+                        </span>
+                        <div class="timeline-event">
+                          <div class="timeline-header mb-sm-0 mb-3">
+                            <h5 class="mb-0">Inquiries Raised</h5>
+                            <small class="text-muted">{{issue.created_at}}</small>
+                          </div>
+                            <ul>
+                              <li><small>Inquiries No.</small> : {{issue.ticket_no}}</li>
+                                <li>
+                                    <small>Inquiries Status</small> :
+                                    <span
+                                      class="badge rounded-pill
+                                      {%if issue.status == 'Unassigned' %}bg-secondary
+                                      {% elif issue.status == 'Assigned' %}bg-primary
+                                      {% elif issue.status == 'Completed' %}bg-success
+                                      {%else%}bg-danger{%endif%}"
+                                    >{{issue.status}}</span>
+                                  </li>
+                                  <li>
+                                    <small>Inquiries Type</small> :
+                                    <span class="fw-semibold text-primary"
+                                      >{{issue.issue_type}}</span>
+                                  </li>
+                                <li><small>Description</small> : {{issue.description}}</li>
+                                <li><small>Priority</small> : {{issue.priority}}</li>
+                            </ul>
+                            <div class="divider text-start-center">
+                              <div class="divider-text fw-bold">Employee Details</div>
+                            </div>
+                            <ul>
+                              <li><small>Name</small> : {{issue.emp_name}}</li>
+                              <li><small>Phone</small> : {{issue.emp_phone}}</li>
+                              {%if issue.emp_email %}
+                              <li><small>Email</small> : {{issue.emp_email}}</li>
+                              {% endif %}
+                              <li>
+                                <small>Address</small> : {{issue.emp_address}}
+                              </li>
+                              <li>
+                                <small>Usertype</small> : {{issue.emp_user_type}}
+                              </li>
+                            </ul>
+                        </div>
+                      </li>
+                        {% if issue.assign_name and issue.assign_phone %}
+                        <li class="timeline-item timeline-item-info mb-3">
+                          <span class="timeline-indicator timeline-indicator-info">
+                            <i class="bx bx-user-check"></i>
+                          </span>
+                        <div class="timeline-event">
+                          <div class="timeline-header mb-sm-0 mb-3">
+                            <h5 class="mb-0">Inquiries Assigned</h5>
+                            <small class="text-muted">{{issue.assigned_date}}</small>
+                          </div>
+                            <ul>
+                              <li><small>Name</small> : {{issue.assign_name}}</li>
+                              <li><small>Phone</small> : {{issue.assign_phone}}</li>
+                            </ul>
+                        </div>
+                      </li>
+                      {% endif %}
+
+                      {% if issue.status == "Completed" %}
+                        <li class="timeline-item timeline-item-success mb-3">
+                          <span class="timeline-indicator timeline-indicator-success">
+                            <i class="bx bx-badge-check"></i>
+                          </span>
+                        <div class="timeline-event">
+                          <div class="timeline-header mb-sm-0 mb-3">
+                            <h5 class="mb-0">Inquiries Resolved</h5>
+                            <small class="text-muted">{{issue.resolved_date}}</small>
+                          </div>
+                          <ul>
+                            <li><small>Reason</small> : {{issue.completed_reason}}</li>
+                          </ul>
+                      </div>
+                    </li>
+                    <li class="timeline-end-indicator">
+                      <i class="bx bx-info-circle"></i>
+                    </li>
+                      {% endif %}
+
+                      {% if issue.status == "Rejected" %}
+                        <li class="timeline-item timeline-item-danger mb-3">
+                          <span class="timeline-indicator timeline-indicator-danger">
+                            <i class="bx bx-x-circle"></i>
+                          </span>
+                        <div class="timeline-event">
+                          <div class="timeline-header mb-sm-0 mb-3">
+                            <h5 class="mb-0">Inquiries Rejected</h5>
+                            <small class="text-muted">{{issue.rejected_date}}</small>
+                          </div>
+                            <ul>
+                              <li><small>Reason</small> : {{issue.rejected_reason}}</li>
+                            </ul>
+                        </div>
+                      </li>
+                      <li class="timeline-end-indicator">
+                        <i class="bx bx-info-circle"></i>
+                      </li>
+                      {% endif %}
+                    </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end aview issue modal  -->
+
+        <!-- assign admin modal  -->
+        <div
+          class="modal fade"
+          id="assignEngr{{issue.id}}"
+          tabindex="-1"
+          aria-hidden="true">
+          <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel2">
+                  Assign Admin Staff
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <form method="POST" action="{{manage_issues}}">
+                {% csrf_token %}
+                <div class="modal-body">
+                  <ul class="mb-1">
+                    <li>
+                      <span class="fw-light">Inquiries No.</span>
+                      <strong>{{issue.ticket_no}}</strong>
+                    </li>
+                  </ul>
+                  <input type="hidden" name="issue_id" value="{{issue.id}}" />
+                  <input type="hidden" name="emp_email" value="{{ issue.emp_email }}" />
+                  <input type="hidden" name="status" value="{{ issue.status }}" />
+                  <div class="row">
+                    <div class="col mb-3">
+                      <label for="assign_name" class="form-label">Name</label>
+                      <input
+                        type="text"
+                        id="assign_name"
+                        name="assign_name"
+                        class="form-control"
+                        placeholder="Enter Admin Staff Name"
+                        value="{%if issue.assign_name %}{{issue.assign_name}}{% endif%}"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="row g-2">
+                    <div class="col mb-0">
+                      <label class="form-label" for="assign_phone">Phone</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="assign_phone"
+                        pattern="[0-9]{4}[0-9]{3}[0-9]{3}"
+                        value="{%if issue.assign_phone %}{{issue.assign_phone}}{% endif%}"
+                        name="assign_phone"
+                        placeholder="Enter Admin Staff Phone"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                  <button type="submit" class="btn btn-primary w-100">
+                    Assign
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <!-- end assign admin staff modal  -->
+
+        <!-- issues status update modal  -->
+        <div
+          class="modal fade"
+          id="updateIssueStautus{{issue.id}}"
+          tabindex="-1"
+          aria-hidden="true">
+          <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel2">
+                  Update Issue Status
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+                {%if issue.status == 'Unassigned'%}
+                    <div class="modal-body">
+                      <ul class="mb-3">
+                        <li>
+                          <span class="fw-light">Inquiries No.</span> :
+                          {{issue.ticket_no}}
+                        </li>
+                        <li>
+                          <span class="fw-light">Employee Phone</span> :
+                          {{issue.emp_phone}}
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                      <button type="button" class="btn btn-primary w-100"
+                          data-bs-toggle="modal"
+                          data-bs-target="#assignEngr{{issue.id}}"
+                          data-bs-dismiss="modal" aria-label="Close">
+                        Assign Admin Staff
+                      </button>
+                    </div>
+                {%elif issue.status == 'Completed'%}
+                    <div class="modal-body">
+                      <ul class="mb-3">
+                        <li>
+                          <span class="fw-light">Inquiries No.</span> :
+                          {{issue.ticket_no}}
+                        </li>
+                        <li>
+                          <span class="fw-light">Employee Phone</span> :
+                          {{issue.emp_phone}}
+                        </li>
+                          <li>
+                          <span class="fw-light">Status</span> : <span class="badge bg-success">Completed</span>
+                        </li>
+                        <li>
+                        <span class="fw-light">Reason</span> : {{issue.completed_reason}}
+                      </li>
+                    </ul>
+                    </div>
+                {%elif issue.status == 'Rejected'%}
+                    <div class="modal-body">
+                      <ul class="mb-3">
+                        <li>
+                          <span class="fw-light">Inquiries No.</span> :
+                          {{issue.ticket_no}}
+                        </li>
+                        <li>
+                          <span class="fw-light">Employee Phone</span> :
+                          {{issue.emp_phone}}
+                        </li>
+                          <li>
+                          <span class="fw-light">Status</span> : <span class="badge bg-danger">Rejected</span>
+                        </li>
+                          <li>
+                          <span class="fw-light">Reason</span> : {{issue.rejected_reason}}
+                        </li>
+                      </ul>
+                    </div>
+                {% else %}
+
+              <form method="POST" action="{% url 'update_issue_status' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                  <ul class="mb-3">
+                    <li>
+                      <span class="fw-light">Inquiries No.</span> :
+                      {{issue.ticket_no}}
+                    </li>
+                    <li>
+                      <span class="fw-light">Employee Phone</span> :
+                      {{issue.emp_phone}}
+                    </li>
+                  </ul>
+                  <input type="hidden" name="issue_id" value="{{issue.id}}" />
+                  <input type="hidden" name="emp_email" value="{{ issue.emp_email }}" />
+                  <input type="hidden" name="status" value="{{ issue.status }}" />
+                  <div class="fw-bold mb-2">Issue Status:</div>
+
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input"
+                    onchange="handle_status('Completed', '{{issue.id}}')"
+                    name="status" value="Completed" type="radio" id="completed"
+                    {%if issue.status == 'Completed' %} checked {%endif%} required>
+                    <label class="form-check-label text-success" for="completed"
+                      >Completed</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input"
+                    onchange="handle_status('Rejected', '{{issue.id}}')"
+                    name="status" value="Rejected" type="radio" id="rejected"
+                    {%if issue.status == 'Rejected' %} checked {%endif%} required>
+                    <label class="form-check-label text-danger" for="rejected"
+                      >Rejected</label
+                    >
+                  </div>
+                  <div
+                  class="col mt-2 mb-3 {% if issue.status != 'Completed' %}d-none{% endif %}"
+                  id="completed_reason_div{{issue.id}}"
+                >
+                  <label for="completed_reason{{issue.id}}" class="form-label">
+                    Completed Reason <span class="text-danger">*</span>
+                  </label>
+                  <textarea
+                    id="completed_reason{{issue.id}}"
+                    rows="3"
+                    name="completed_reason"
+                    class="form-control"
+                    placeholder="Enter a completed reason"
+                    {% if issue.status == 'Completed' %}required{% endif %}
+                  >{% if issue.completed_reason %}{{issue.completed_reason}}{% endif %}</textarea>
+                </div>
+                
+                <div
+                  class="col mt-2 mb-3 {% if issue.status != 'Rejected' %}d-none{% endif %}"
+                  id="rejected_reason_div{{issue.id}}"
+                >
+                  <label for="rejected_reason{{issue.id}}" class="form-label">
+                    Rejected Reason <span class="text-danger">*</span>
+                  </label>
+                  <textarea
+                    id="rejected_reason{{issue.id}}"
+                    rows="3"
+                    name="rejected_reason"
+                    class="form-control"
+                    placeholder="Enter a rejected reason"
+                    {% if issue.status == 'Rejected' %}required{% endif %}
+                  >{% if issue.rejected_reason %}{{issue.rejected_reason}}{% endif %}</textarea>
+                </div>
+                
+                <div class="modal-footer justify-content-center">
+                  <button type="submit" class="btn btn-primary w-100">
+                    Update
+                  </button>
+                </div>
+                </form>
+                
+                {%endif%}
+            </div>
+          </div>
+        </div>
+        <!-- issues status update modal  -->
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="6">
+            <div class="d-flex justify-content-center align-items-center flex-column">
+            <h4 class="text-center text-danger mt-2">No Data Found! <a href="{% url 'manage_issues' %}"
+              class="btn rounded-pill btn-icon btn-outline-primary btn-sm"><span
+                  class="tf-icons bx bx-refresh"></span></a> </h4>
+            {% if to_date or from_date or ticket_status or ticket_type or query %}
+            <ul>
+              Filter Apply
+            {% if from_date %}
+              <li><strong>From Date</strong>: {{from_date|date:'Y-m-d'}}</li>
+            {%endif%}
+            {% if to_date %}
+              <li><strong>To Date</strong>: {{to_date|date:'Y-m-d'}}</li>
+            {%endif%}
+
+            {% if ticket_status%}
+              <li><strong>Inquiries Status</strong>: {{ticket_status}}</li>
+            {%endif%}
+
+            {% if ticket_type%}
+              <li><strong>Inquiries Type</strong>: {{ticket_type}}</li>
+            {%endif%}
+
+            {% if query %}
+              <li><strong>Search</strong>: {{query}}</li>
+            {%endif%}
+            </ul>
+            {%endif%}
+            </div>
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+<nav aria-label="..." class='px-2 mt-2'>
+    {% if issues.has_other_pages %}
+        <ul class="pagination justify-content-end pagination-sm">
+        {% if issues.has_previous %}
+            <li class="page-item">
+                <a class="page-link" 
+                href="?page={{ issues.previous_page_number }}{% if from_date %}&to_date={{from_date|date:'Y-m-d'}}{%endif%}{% if to_date %}&to_date={{to_date|date:'Y-m-d'}}{%endif%}{% if ticket_status %}&ticket_status={{ticket_status}}{%endif%}{% if ticket_type %}&ticket_type={{ticket_type}}{%endif%}{% if query %}&query={{query}}{%endif%}{% if order_by %}&order_by={{order_by}}{%endif%}">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+        {% endif %}
+
+        {% for i in issues.paginator.page_range %}
+            {% if issues.number == i %}
+            <li class="page-item active" aria-current="page"><a class="page-link" href="#">{{ i }}</a></li>
+            {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ i }}{% if from_date %}&to_date={{from_date|date:'Y-m-d'}}{%endif%}{% if to_date %}&to_date={{to_date|date:'Y-m-d'}}{%endif%}{% if ticket_status %}&ticket_status={{ticket_status}}{%endif%}{% if ticket_type %}&ticket_type={{ticket_type}}{%endif%}{% if query %}&query={{query}}{%endif%}{% if order_by %}&order_by={{order_by}}{%endif%}">{{ i }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if issues.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                 href="?page={{ issues.next_page_number }}{% if from_date %}&to_date={{from_date|date:'Y-m-d'}}{%endif%}{% if to_date %}&to_date={{to_date|date:'Y-m-d'}}{%endif%}{% if ticket_status %}&ticket_status={{ticket_status}}{%endif%}{% if ticket_type %}&ticket_type={{ticket_type}}{%endif%}{% if query %}&query={{query}}{%endif%}{% if order_by %}&order_by={{order_by}}{%endif%}">
+                 <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+        {% endif %}
+        </ul>
+        {% endif %}
+        </nav>
+
+</div>
+{% endblock content %} 
+{% block customjs %}
+<script>
+    function order_by(ob) {
+        var query = "?page={{ page }}{% if from_date %}&to_date={{from_date|date:'Y-m-d'}}{%endif%}{% if to_date %}&to_date={{to_date|date:'Y-m-d'}}{%endif%}{% if ticket_status %}&ticket_status={{ticket_status}}{%endif%}{% if ticket_type %}&ticket_type={{ticket_type}}{%endif%}{% if query %}&query={{query}}{%endif%}"
+        var manage_url = "{% url 'manage_issues' %}"
+        return location.href = `${manage_url}${query}&order_by=${ob}`;
+    }
+    function handle_status(status, issue_id) {
+        const rejectedDiv = document.getElementById(`rejected_reason_div${issue_id}`);
+        const rejectedTextarea = document.getElementById(`rejected_reason${issue_id}`);
+        const completedDiv = document.getElementById(`completed_reason_div${issue_id}`);
+        const completedTextarea = document.getElementById(`completed_reason${issue_id}`);
+        
+        if (status === "Rejected") {
+            rejectedDiv.classList.remove("d-none");
+            rejectedTextarea.setAttribute("required", "");
+            completedDiv.classList.add("d-none");
+            completedTextarea.removeAttribute("required");
+        } else if (status === "Completed") {
+            completedDiv.classList.remove("d-none");
+            completedTextarea.setAttribute("required", "");
+            rejectedDiv.classList.add("d-none");
+            rejectedTextarea.removeAttribute("required");
+        } else {
+            rejectedDiv.classList.add("d-none");
+            rejectedTextarea.removeAttribute("required");
+            completedDiv.classList.add("d-none");
+            completedTextarea.removeAttribute("required");
+        }
+    }
+
+    // Debugging form data submission
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', event => {
+            event.preventDefault;
+            const formData = new FormData(form);
+            const formDataObject = {};
+            formData.forEach((value, key) => {
+                formDataObject[key] = value;
+            });
+            console.log('Form data:', formDataObject);
+        });
+    });
+</script>
+{% endblock customjs %}
+

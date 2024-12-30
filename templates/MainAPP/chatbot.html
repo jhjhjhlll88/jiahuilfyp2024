@@ -1,0 +1,47 @@
+{% extends 'MainApp/base.html' %}
+
+{% block content %}
+    <h2>Chatbot</h2>
+    <div id="chatbot" style="display:none;">
+        <div id="chatbox"></div>
+        <textarea id="userQuery" placeholder="Type your query here..."></textarea>
+        <button onclick="sendQuery()">Send</button>
+    </div>
+
+    <button id="chatbotButton" onclick="toggleChatbot()">Chatbot</button>
+
+    <script>
+        function toggleChatbot() {
+            var chatbot = document.getElementById('chatbot');
+            chatbot.style.display = chatbot.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function sendQuery() {
+            var query = document.getElementById('userQuery').value;
+            if (query.trim() === '') return;
+
+            var chatbox = document.getElementById('chatbox');
+            chatbox.innerHTML += '<p><b>You:</b> ' + query + '</p>';
+
+            fetch("{% url 'query_chatbot' %}", {
+                method: 'POST',
+                body: new URLSearchParams({
+                    'query': query
+                }),
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    data.results.forEach(result => {
+                        chatbox.innerHTML += '<p><b>Bot:</b> ' + result + '</p>';
+                    });
+                } else {
+                    chatbox.innerHTML += '<p><b>Bot:</b> ' + data.message + '</p>';
+                }
+            });
+        }
+    </script>
+{% endblock %}

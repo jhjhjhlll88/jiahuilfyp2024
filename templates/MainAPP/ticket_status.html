@@ -1,0 +1,132 @@
+{% extends 'MainApp/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center" style="margin-bottom: 10rem !important;">
+        <div class="col-md-8">
+            <div class="card shadow-lg rounded">
+                <h5 class="card-header bg-primary text-white">
+                    {% if issue %}
+                        <span class="fw-bold">
+                            <a href='{{ ticket_status }}' class="text-white">
+                                <i class='bx bx-arrow-back me-2'></i>
+                            </a>
+                        </span>
+                    {% endif %}
+                    Inquiries Status
+                </h5>
+                <div class="card-body">
+                    {% include 'alert_msg.html' %}
+                    
+                    {% if issue %}
+                    <!-- Issue Details Section -->
+                    <div class="timeline timeline-dashed mt-4">
+                        <!-- Ticket Raised -->
+                        <div class="timeline-item">
+                            <span class="timeline-indicator bg-primary text-white">
+                                <i class="bx bx-paint"></i>
+                            </span>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Ticket Raised</h6>
+                                <small class="text-muted">{{ issue.created_at }}</small>
+                                <ul class="mt-2">
+                                    <li><strong>Ticket No:</strong> {{ issue.ticket_no }}</li>
+                                    <li><strong>Status:</strong> 
+                                        <span class="badge 
+                                            {% if issue.status == 'Unassigned' %}bg-secondary
+                                            {% elif issue.status == 'Assigned' %}bg-primary
+                                            {% elif issue.status == 'Completed' %}bg-success
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ issue.status }}
+                                        </span>
+                                    </li>
+                                    <li><strong>Type:</strong> <span class="text-primary">{{ issue.issue_type }}</span></li>
+                                    <li><strong>Description:</strong> {{ issue.description }}</li>
+                                    <li><strong>Priority:</strong> {{ issue.priority }}</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Students/Visitors Details -->
+                        <div class="timeline-divider">
+                            <span class="divider-text fw-bold text-secondary">Students Details</span>
+                        </div>
+                        <div class="timeline-item">
+                            <ul>
+                                <li><strong>Name:</strong> {{ issue.emp_address }} {{ issue.emp_name }}</li>
+                                <li><strong>Phone:</strong> {{ issue.emp_phone }}</li>
+                                {% if issue.emp_email %}
+                                <li><strong>Email:</strong> {{ issue.emp_email }}</li>
+                                {% endif %}
+                                <li><strong>Role:</strong> {{ issue.emp_user_type }}</li>
+                                <li><strong>Priority:</strong> {{ issue.priority }}</li>
+                            </ul>
+                        </div>
+
+                        <!-- Ticket Assigned -->
+                        {% if issue.assign_name and issue.assign_phone %}
+                        <div class="timeline-item">
+                            <span class="timeline-indicator bg-info text-white">
+                                <i class="bx bx-user-check"></i>
+                            </span>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Ticket Assigned</h6>
+                                <small class="text-muted">{{ issue.assigned_date }}</small>
+                                <ul class="mt-2">
+                                    <li><strong>Name:</strong> {{ issue.assign_name }}</li>
+                                    <li><strong>Phone:</strong> {{ issue.assign_phone }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Ticket Resolved -->
+                        {% if issue.status == "Completed" %}
+                        <div class="timeline-item">
+                            <span class="timeline-indicator bg-success text-white">
+                                <i class="bx bx-badge-check"></i>
+                            </span>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Ticket Resolved</h6>
+                                <small class="text-muted">{{ issue.resolved_date }}</small>
+                                <ul>
+                                    <li><strong>Reason:</strong> {{ issue.completed_reason }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Ticket Rejected -->
+                        {% if issue.status == "Rejected" %}
+                        <div class="timeline-item">
+                            <span class="timeline-indicator bg-danger text-white">
+                                <i class="bx bx-x-circle"></i>
+                            </span>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Ticket Rejected</h6>
+                                <small class="text-muted">{{ issue.rejected_date }}</small>
+                                <ul>
+                                    <li><strong>Reason:</strong> {{ issue.rejected_reason }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <!-- Ticket Search Form -->
+                    <form id="formTicketSearch" method="GET" action="{% url 'ticket_status' %}">
+                        <div class="mb-4">
+                            <label for="search_term" class="form-label">Search Inquiries</label>
+                            <input type="text" id="search_term" name="search_term" class="form-control shadow-sm"
+                                   placeholder="Enter Ticket Number, Email, Name, or Phone Number" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg shadow w-100">Check Status</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
