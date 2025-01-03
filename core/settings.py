@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,7 +33,7 @@ EMAIL_HOST_USER = 'huihui011114@gmail.com'
 EMAIL_HOST_PASSWORD = 'ycoa freu hmhq urza'
 
 
-ALLOWED_HOSTS = ['.vercel.app', '127,0.0.1', '.now.sh']
+ALLOWED_HOSTS = ['fypfsktm.herokuapp.com', 'localhost']
 
 
 # Application definition
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'MainApp.LoginProtectMiddleware.ProtectView',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -120,17 +122,13 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
+# Use the DATABASE_URL environment variable for Heroku, or fall back to Railway's details.
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',      # Name of the PostgreSQL database
-        'USER': 'postgres',           # PostgreSQL user
-        'PASSWORD': 'hmWRxqFsdRNMJxluOUlBmDbmdvMmZdeJ',    # PostgreSQL password
-        'HOST': 'autorack.proxy.rlwy.net',       # Host is localhost
-        'PORT': '56736',            # Default PostgreSQL port
-    }
+    'default': dj_database_url.config(
+        default='postgres://postgres:hmWRxqFsdRNMJxluOUlBmDbmdvMmZdeJ@autorack.proxy.rlwy.net:56736/railway'
+    )
 }
+
 
 
 
@@ -172,12 +170,15 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
